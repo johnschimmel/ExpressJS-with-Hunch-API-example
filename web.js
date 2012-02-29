@@ -4,20 +4,6 @@ var ejs = require('ejs'); //embedded javascript template engine
 
 var app = express.createServer(express.logger());
 
-var mongoose = require('mongoose'); // include Mongoose MongoDB library
-var schema = mongoose.Schema; 
-
-/************ DATABASE CONFIGURATION **********/
-//app.db = mongoose.connect(process.env.MONGOLAB_URI); //connect to the mongolabs database - local server uses .env file
-
-// Include models.js - this file includes the database schema and defines the models used
-//require('./models').configureSchema(schema, mongoose);
-
-// Define your DB Model variables
-//var BlogPost = mongoose.model('BlogPost');
-//var Comment = mongoose.model('Comment');
-/************* END DATABASE CONFIGURATION *********/
-
 
 /*********** SERVER CONFIGURATION *****************/
 app.configure(function() {
@@ -58,22 +44,30 @@ app.configure(function() {
 
 
 
-// main page - display all blog posts
+// main page 
 app.get('/', function(req, res) {
     
+    // the url you need to request from hunch
     url = "http://api.hunch.com/api/v1/get-recommendations/?auth_token=d25dbef5e3805ea9aac48f677dbc97aa8745722e&topic_ids=list_book&reverse"
-    requestURL(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            hunchData = JSON.parse(body);
 
+    // make the request to Hunch api
+    requestURL(url, function (error, response, hunchJSON) {
+        
+        // if successful
+        if (!error && response.statusCode == 200) {
+
+            // convert hunchJSON into JS object, hunchData
+            hunchData = JSON.parse(hunchJSON);
+
+            // prepare template variables
             var templateData = {
                 'url' : url,
                 'totalRecs' : hunchData.total,
                 'hunchRecs' : hunchData.recommendations
             }
-
+            
+            // render the template with templateData
             res.render("hunch_display.html",templateData)
-            res.send("got it");
         }
     });
 
