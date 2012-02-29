@@ -1,0 +1,37 @@
+<div class="row">
+
+    <div class="span12">
+        
+        <h2>Total recommendations: <%= totalRecs %></h2>
+        <div class="well">
+            from hunch api:
+            <br><a href="<%= url %>"><%= url %></a>
+        </div>
+        
+        <!-- looping through each recommendation -->
+        <% for(i=0; i<hunchRecs.length-1; i++) { %>
+            <!-- recommendation row -->
+            <div class="row">
+                <!-- left column -->
+                <div class="span6">
+                    <b>
+                        <a href="<%= hunchRecs[i].url %>"><%= hunchRecs[i].title %></a>
+                    </b> - <%= hunchRecs[i].result_id %><br>
+                    stars: <%= hunchRecs[i].stars %><br>
+                    score:<br>
+                    <!-- loop through all score array items -->
+                    <% for (s=0;s<hunchRecs[i].score.length; s++) { %>
+                    <span class="score"><%= hunchRecs[i].score[s] %></span><br>
+                    <% } %>
+                </div><!-- end of left column -->
+                
+                <!-- Right column -->
+                <div class="span3">
+                    <img src="<%= hunchRecs[i].image_urls[0] %>">
+                </div><!-- end of right column -->
+                
+            </div><!-- end of recommendation row -->
+        <% } %>
+
+    </div>
+</div>
