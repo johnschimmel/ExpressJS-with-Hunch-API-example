@@ -9,8 +9,8 @@ var crypto = require('crypto')
 var shasum = crypto.createHash('sha1');
 
 hunch = {
-    app_id : '3147734',
-    app_secret : '1446f922af86fbcb41897eec1837f5da3fb23bc3'
+    app_id : '<YOUR APP_ID>',
+    app_secret : '<YOUR APP SECRET>'
 };
 /* END HUNCH API AUTH CONFIG */
 
