@@ -54,32 +54,11 @@ app.configure(function() {
 
 
 // main page 
-app.get('/', function(req, res) {
+app.get('/', function(request, response) {
     
-    // the url you need to request from hunch
-    url = "http://api.hunch.com/api/v1/get-recommendations/?auth_token=d25dbef5e3805ea9aac48f677dbc97aa8745722e&topic_ids=list_book&reverse"
-
-    // make the request to Hunch api
-    requestURL(url, function (error, response, hunchJSON) {
-        
-        // if successful
-        if (!error && response.statusCode == 200) {
-
-            // convert hunchJSON into JS object, hunchData
-            hunchData = JSON.parse(hunchJSON);
-
-            // prepare template variables
-            var templateData = {
-                'url' : url,
-                'totalRecs' : hunchData.total,
-                'hunchRecs' : hunchData.recommendations
-            }
-            
-            // render the template with templateData
-            res.render("hunch_display.html",templateData)
-        }
-    });
-
+    // main page - rather boring right now
+    response.render("hunch_main_page.html")
+    
 });
 
 // end of main page
