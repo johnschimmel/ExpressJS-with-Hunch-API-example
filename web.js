@@ -140,8 +140,7 @@ app.get('/hunchcallback', function(request, response){
     
     get_token_request_url = "http://api.hunch.com/api/v1/get-auth-token/?app_id="+hunch.app_id+"&auth_token_key="+auth_token_key+"&auth_sig="+authSig;
     
-    // 
-    
+    // Request the auth_token from Hunch. 
     requestURL(get_token_request_url, function(error, httpResponse, data) {
         hunchData = JSON.parse(data);
         
@@ -150,10 +149,12 @@ app.get('/hunchcallback', function(request, response){
             user_id = hunchData.user_id;
             
             response.redirect("/recommendations/" + auth_token);
+        } else {
+            
+            response.send("uhoh something went wrong...");
         }
     });
     
-    response.send("ok<br>" + authSig+"<br><br>"+url);
     
 })
 
