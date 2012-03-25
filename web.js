@@ -4,6 +4,15 @@ var ejs = require('ejs'); //embedded javascript template engine
 
 var app = express.createServer(express.logger());
 
+/* HUNCH API AUTH CONFIG */
+var crypto = require('crypto')
+var shasum = crypto.createHash('sha1');
+
+hunch = {
+    app_id : '3147734',
+    app_secret : '1446f922af86fbcb41897eec1837f5da3fb23bc3'
+};
+/* END HUNCH API AUTH CONFIG */
 
 /*********** SERVER CONFIGURATION *****************/
 app.configure(function() {
@@ -72,37 +81,89 @@ app.get('/', function(req, res) {
     });
 
 });
+
 // end of main page
 
 
-var crypto = require('crypto')
-var shasum = crypto.createHash('sha1');
+/***************  GET RECOMMENDATIONS BY AUTH_TOKEN  ****************/
+app.get('/recommendations/:auth_token', function(req, res) {
+    
+    // get the auth token from the url
+    auth_token = request.params.auth_token
+    
+    // the url you need to request from hunch
+    url = "http://api.hunch.com/api/v1/get-recommendations/?auth_token="+auth_token+"&topic_ids=list_book&reverse"
+
+    // make the request to Hunch api
+    requestURL(url, function (error, response, hunchJSON) {
+        
+        // if successful
+        if (!error && response.statusCode == 200) {
+
+            // convert hunchJSON into JS object, hunchData
+            hunchData = JSON.parse(hunchJSON);
+
+            // prepare template variables
+            var templateData = {
+                'url' : url,
+                'totalRecs' : hunchData.total,
+                'hunchRecs' : hunchData.recommendations
+            }
+            
+            // render the template with templateData
+            res.render("hunch_display.html",templateData)
+        }
+    });
+
+});
+/***************  END RECOMMENDATIONS BY AUTH_TOKEN  ****************/
+
+app.get("/login", function(request, response){
+    
+    response.redirect('http://www.hunch.com/authorize/v1/?app_id=' + hunch.app_id );
+    
+});
+
 app.get('/hunchcallback', function(request, response){
 
+    // get querystrings from hunch callback
     auth_token_key = request.query.auth_token_key
     user_id = request.query.user_id
     next = request.query.next
     
     appDict = {
-        'app_id' : '3147734',
+        'app_id' : hunch.app_id,
         'auth_token_key' : auth_token_key
     }
     
     authSig = getAuthSig(appDict);
     
-    url = "http://api.hunch.com/api/v1/get-auth-token/?app_id=3147734&auth_token_key="+auth_token_key+"&auth_sig="+authSig;
+    get_token_request_url = "http://api.hunch.com/api/v1/get-auth-token/?app_id="+hunch.app_id+"&auth_token_key="+auth_token_key+"&auth_sig="+authSig;
+    
+    // 
+    
+    requestURL(get_token_request_url, function(error, httpResponse, data) {
+        hunchData = JSON.parse(data);
+        
+        if (hunchData.status == "accepted") {
+            auth_token = hunchData.auth_token;
+            user_id = hunchData.user_id;
+            
+            response.redirect("/recommendations/" + auth_token);
+        }
+    });
     
     response.send("ok<br>" + authSig+"<br><br>"+url);
     
 })
 
-
+/********** Functions for Hunch Authentication ******************/
 function urlencode(x) {
     return escape(x).replace('+','%2B').replace('/','%2F').replace('@','%40').replace('%20','+');
 }
 
 function getAuthSig(queryDict) {
-    APP_SECRET = "1446f922af86fbcb41897eec1837f5da3fb23bc3";
+    APP_SECRET = hunch.app_secret;
     
     var keys = [];
     for (var key in queryDict)
