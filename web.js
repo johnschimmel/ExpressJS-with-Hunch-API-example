@@ -75,6 +75,42 @@ app.get('/', function(req, res) {
 // end of main page
 
 
+var crypto = require('crypto')
+var shasum = crypto.createHash('sha1');
+app.get('/hunchcallback', function(request, response){
+
+    
+    appDict = {
+        'app_id' : '3147734',
+    }
+    
+    response.send("ok");
+    
+})
+
+
+function urlencode(x) {
+    return escape(x).replace('+','%2B').replace('/','%2F').replace('@','%40').replace('%20','+');
+}
+
+function getAuthSig(queryDict) {
+    APP_SECRET = "1446f922af86fbcb41897eec1837f5da3fb23bc3";
+    
+    var keys = [];
+    for (var key in queryDict)
+        keys.push(key);
+    keys.sort();
+    
+    var queries = [];
+    for (var i in keys)
+        queries.push( urlencode(keys[i]) + '=' + urlencode(queryDict[keys[i]]) );
+    var data = queries.join('&') + APP_SECRET;
+    
+    console.log(data);
+    shasum.update(data);
+    return shasum.digest('hex');
+
+}
 
 // Make server turn on and listen at defined PORT (or port 3000 if is not defined)
 var port = process.env.PORT || 3000;
