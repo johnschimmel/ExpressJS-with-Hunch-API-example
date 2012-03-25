@@ -79,12 +79,20 @@ var crypto = require('crypto')
 var shasum = crypto.createHash('sha1');
 app.get('/hunchcallback', function(request, response){
 
+    auth_token_key = request.query.auth_token_key
+    user_id = request.query.user_id
+    next = request.query.next
     
     appDict = {
         'app_id' : '3147734',
+        'auth_token_key' : auth_token_key
     }
     
-    response.send("ok");
+    authSig = getAuthSig(appDict);
+    
+    url = "http://api.hunch.com/api/v1/get-auth-token/?app_id=3147734&auth_token_key="+auth_token_key+"&auth_sig="+authSig;
+    
+    response.send("ok<br>" + authSig+"<br><br>"+url);
     
 })
 
