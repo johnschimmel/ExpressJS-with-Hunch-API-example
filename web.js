@@ -85,39 +85,6 @@ app.get('/', function(req, res) {
 // end of main page
 
 
-/***************  GET RECOMMENDATIONS BY AUTH_TOKEN  ****************/
-app.get('/recommendations/:auth_token', function(req, res) {
-    
-    // get the auth token from the url
-    auth_token = request.params.auth_token
-    
-    // the url you need to request from hunch
-    url = "http://api.hunch.com/api/v1/get-recommendations/?auth_token="+auth_token+"&topic_ids=list_book&reverse"
-
-    // make the request to Hunch api
-    requestURL(url, function (error, response, hunchJSON) {
-        
-        // if successful
-        if (!error && response.statusCode == 200) {
-
-            // convert hunchJSON into JS object, hunchData
-            hunchData = JSON.parse(hunchJSON);
-
-            // prepare template variables
-            var templateData = {
-                'url' : url,
-                'totalRecs' : hunchData.total,
-                'hunchRecs' : hunchData.recommendations
-            }
-            
-            // render the template with templateData
-            res.render("hunch_display.html",templateData)
-        }
-    });
-
-});
-/***************  END RECOMMENDATIONS BY AUTH_TOKEN  ****************/
-
 app.get("/login", function(request, response){
     
     response.redirect('http://www.hunch.com/authorize/v1/?app_id=' + hunch.app_id );
@@ -142,21 +109,63 @@ app.get('/hunchcallback', function(request, response){
     
     // Request the auth_token from Hunch. 
     requestURL(get_token_request_url, function(error, httpResponse, data) {
-        hunchData = JSON.parse(data);
-        
-        if (hunchData.status == "accepted") {
-            auth_token = hunchData.auth_token;
-            user_id = hunchData.user_id;
+        if (!error && httpResponse.statusCode == 200) {
             
-            response.redirect("/recommendations/" + auth_token);
+            hunchData = JSON.parse(data);
+            
+            if (hunchData.status == "accepted") {
+                auth_token = hunchData.auth_token;
+                user_id = hunchData.user_id;
+                
+                response.redirect("/recommendations/" + auth_token);
+            } else {
+                // error with hunch response
+                response.send("uhoh something went wrong...<br><pre>"+JSON.stringify(hunchData)+"</pre>");
+            }
         } else {
             
-            response.send("uhoh something went wrong...");
+            // not able to get a response from hunch
+            response.send("Error occurred when trying to fetch : "+ get_token_request_url);
+            
         }
     });
     
     
-})
+});
+
+
+/***************  GET RECOMMENDATIONS BY AUTH_TOKEN  ****************/
+app.get('/recommendations/:auth_token', function(request, response) {
+    
+    // get the auth token from the url
+    auth_token = request.params.auth_token
+    
+    // the url you need to request from hunch
+    url = "http://api.hunch.com/api/v1/get-recommendations/?auth_token="+auth_token+"&topic_ids=list_book&reverse"
+
+    // make the request to Hunch api
+    requestURL(url, function (error, httpResponse, hunchJSON) {
+        
+        // if successful
+        if (!error && httpResponse.statusCode == 200) {
+
+            // convert hunchJSON into JS object, hunchData
+            hunchData = JSON.parse(hunchJSON);
+
+            // prepare template variables
+            var templateData = {
+                'url' : url,
+                'totalRecs' : hunchData.total,
+                'hunchRecs' : hunchData.recommendations
+            }
+            
+            // render the template with templateData
+            response.render("hunch_display.html",templateData)
+        }
+    });
+
+});
+/***************  END RECOMMENDATIONS BY AUTH_TOKEN  ****************/
 
 /********** Functions for Hunch Authentication ******************/
 function urlencode(x) {
