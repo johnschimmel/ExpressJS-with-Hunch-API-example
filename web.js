@@ -1,7 +1,7 @@
 var requestURL = require('request');
 var express = require('express'); 
 var ejs = require('ejs'); //embedded javascript template engine
-
+var async = require('async');
 var app = express.createServer(express.logger());
 
 /* HUNCH API AUTH CONFIG */
@@ -144,6 +144,55 @@ app.get('/recommendations/:auth_token', function(request, response) {
     });
 
 });
+
+
+app.get("/doublecall", function(request, response){
+    
+    var url1 ="http://api.hunch.com/api/v1/get-recommendations/?auth_token=6275cb220d05d45e411be1358cdcd7a765a1c80b&topic_ids=list_movie&limit=200";
+    
+    var url2 = "http://api.hunch.com/api/v1/get-recommendations/?auth_token=6275cb220d05d45e411be1358cdcd7a765a1c80b&topic_ids=list_movie&limit=200&reverse"
+    
+    // using the ASYNC module, we will request both urls at the same time with .parallel
+    // both will get requested at the same time and when finished will 
+    async.parallel({
+        url1 : function(callback) {
+            fetchURL(url1,callback);
+        },
+        
+        url2 : function(callback) {
+            fetchURL(url2,callback);
+        },
+    }, 
+    function(err, results){
+        var url1Recs = results.url1.recommendations;
+        var url2Recs = results.url2.recommendations;
+        
+        var combined = url1Recs.concat(url2Recs);
+        
+        data = {
+            length : combined.length
+            , recommendations : combined
+        }
+        response.json(data);
+    });
+    
+    
+});
+
+var fetchURL = function(url, callback) {
+    // used in the ASYNC example
+    // make the url request to hunch, then return with 'callback'
+    requestURL(url, function(err, http, data) {
+        if (err) {
+            callback(err, null); //error is 1st argument, null (result) 2nd because there was an errof
+        }
+        
+        if (data) {
+            jsData = JSON.parse(data);
+            callback(null, jsData);
+        }
+    });
+}
 /***************  END RECOMMENDATIONS BY AUTH_TOKEN  ****************/
 
 /********** Functions for Hunch Authentication ******************/
